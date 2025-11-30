@@ -1,0 +1,71 @@
+{
+  "name": "capstone-desktop",
+  "private": true,
+  "version": "0.0.0",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "start:prod": "npm run build && npm run electron",
+    "dev": "concurrently \"tsc -p tsconfig.node.json -w\" \"vite --port 5173 --strictPort\" \"wait-on http://localhost:5173/first.html && electron .\"",
+    "clean": "node -e \"['dist','dist-electron'].forEach(d=>{try{require('fs').rmSync(d,{recursive:true,force:true});}catch(e){}})\"",
+    "build": "tsc -p tsconfig.node.json && vite build",
+    "build:electron": "tsc -p tsconfig.node.json",
+    "prebuild": "npm run build:electron",
+    "package": "npm run build && electron-builder --dir",
+    "dist:win": "npm run build && electron-builder --win --x64",
+    "dist": "npm run build && electron-builder",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "electron": "electron ."
+  },
+  "dependencies": {
+    "@yudiel/react-qr-scanner": "^2.4.1",
+    "dayjs": "^1.11.18",
+    "framer-motion": "^12.23.24",
+    "react": "^19.1.1",
+    "react-datepicker": "^8.8.0",
+    "react-dom": "^19.1.1",
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^6.30.1",
+    "react-toastify": "^11.0.5",
+    "recharts": "^3.3.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "toastify": "^2.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/node": "^24.6.0",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.4",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
+    "electron": "^38.3.0",
+    "electron-builder": "^24.6.0",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.22",
+    "globals": "^16.4.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.13",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.45.0",
+    "vite": "^7.1.7",
+    "wait-on": "^9.0.1"
+  },
+  "build": {
+    "appId": "com.example.capstone",
+    "productName": "Capstone Desktop",
+    "win": {
+      "icon": "./logo.png"
+    },
+    "files": [
+      "dist/**",
+      "dist-electron/**",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "public"
+    }
+  }
+}
