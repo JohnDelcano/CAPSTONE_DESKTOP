@@ -189,39 +189,39 @@ export default function AdminReservation() {
 
     const s = getAdminSocket();
 
-    const handleNew = (newRes: Reservation) => {
-      setReservations((prev) => {
-        const exists = prev.find((r) => r._id === newRes._id);
-        if (exists) return prev;
-        // prepend new reservation (server usually sends newest first)
-        return [newRes, ...prev];
+    // Handle new reservations
+    const handleReservationCreated = (res: Reservation) => {
+      setReservations(prev => {
+        if (prev.find(r => r._id === res._id)) return prev;
+        return [res, ...prev];
       });
     };
 
-    const handleUpdated = (updated: Reservation) => {
-      setReservations((prev) =>
-        prev.map((r) => {
-          if (r._id !== updated._id) return r;
-          // prefer updated nested objects when present, otherwise keep existing
-          const updatedStudent = (updated as unknown as Reservation).studentId;
-          const updatedBook = (updated as unknown as Reservation).bookId;
-
-          return {
-            ...r,
-            ...updated,
-            studentId: updatedStudent ?? r.studentId,
-            bookId: updatedBook ?? r.bookId,
-          } as Reservation;
-        })
+    // Handle updates (approve, decline, cancel, return)
+    const handleReservationUpdated = (res: Reservation) => {
+      setReservations(prev =>
+        prev.map(r => (r._id === res._id ? res : r))
       );
     };
 
-    s.on("reservationCreated", handleNew);
-    s.on("reservationUpdated", handleUpdated);
+    // Handle cancellations explicitly if needed
+    const handleReservationCancelled = (res: Reservation) => {
+      setReservations(prev =>
+        prev.map(r => (r._id === res._id ? res : r))
+      );
+    };
+
+    // Subscribe to all relevant events
+    s.on("reservationCreated", handleReservationCreated);
+    s.on("reservationUpdated", handleReservationUpdated);
+    s.on("reservationCancelled", handleReservationCancelled);
+    s.on("bookReturned", handleReservationUpdated); // optional for return event
 
     return () => {
-      s.off("reservationCreated", handleNew);
-      s.off("reservationUpdated", handleUpdated);
+      s.off("reservationCreated", handleReservationCreated);
+      s.off("reservationUpdated", handleReservationUpdated);
+      s.off("reservationCancelled", handleReservationCancelled);
+      s.off("bookReturned", handleReservationUpdated);
     };
   }, [fetchReservations]);
 
@@ -351,7 +351,7 @@ export default function AdminReservation() {
                           }}
                           className="px-2 py-1 bg-green-500 text-white rounded-md text-xs"
                         >
-                          Approve
+                          View
                         </button>
                       )}
                       {r.status === "approved" && (
@@ -492,16 +492,26 @@ export default function AdminReservation() {
                 onClick={() => setIsModalOpen(false)}
                 className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
               >
-                Cancel
+                Close
               </button>
               <div className="flex gap-2">
                 {selectedReservation.status === "reserved" && (
-                  <button
-                    onClick={() => handleUpdateStatus(selectedReservation._id, "approved")}
-                    className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-base"
-                  >
-                    Approve
-                  </button>
+                  <>
+      <button
+        onClick={() => handleUpdateStatus(selectedReservation._id, "approved")}
+        className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-base"
+      >
+        Approve
+      </button>
+
+      <button
+        onClick={() => handleUpdateStatus(selectedReservation._id, "declined")}
+        className="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-base"
+      >
+        Cancel Reservation
+      </button>
+    </>
+                  
                 )}
                 {selectedReservation.status === "approved" && (
                   <button
