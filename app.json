@@ -1,3 +1,12 @@
 {
-  "expo": {}
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "5963af1b-3362-4175-8a10-34e2813cac50"
+      }
+    },
+    "android": {
+      "package": "com.dangdang.capstonedesktop"
+    }
+  }
 }

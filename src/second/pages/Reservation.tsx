@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, type SyntheticEvent } from "react";
 import axios from "axios";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { io, Socket } from "socket.io-client";
 import searchIcon from "../../assets/search.png";
@@ -141,10 +140,7 @@ export default function AdminReservation() {
     id: string,
     status: "approved" | "declined" | "returned"
   ) => {
-    if (status === "approved" && !dueDate) {
-      alert("Please pick a due date.");
-      return;
-    }
+  
 
     try {
       const token = localStorage.getItem("token");
@@ -176,10 +172,20 @@ export default function AdminReservation() {
   // Reset due date when modal opens
   // -----------------------------
   useEffect(() => {
-    if (isModalOpen && selectedReservation) {
-      setDueDate(selectedReservation.dueDate ? new Date(selectedReservation.dueDate) : null);
+  if (isModalOpen && selectedReservation) {
+    if (selectedReservation.status === "reserved") {
+      // Set due date automatically to 7 days from now
+      const defaultDueDate = new Date();
+      defaultDueDate.setDate(defaultDueDate.getDate() + 7);
+      setDueDate(defaultDueDate);
+    } else if (selectedReservation.dueDate) {
+      setDueDate(new Date(selectedReservation.dueDate));
+    } else {
+      setDueDate(null);
     }
-  }, [isModalOpen, selectedReservation]);
+  }
+}, [isModalOpen, selectedReservation]);
+
 
   // -----------------------------
   // Socket + initial fetch
@@ -474,17 +480,6 @@ export default function AdminReservation() {
               </div>
             </div>
 
-            {/* Due Date */}
-            <div className="bg-gray-100 p-4 rounded-lg border mb-6">
-              <h4 className="font-semibold text-lg mb-3 flex items-center gap-1">📅 Set Due Date</h4>
-              <DatePicker
-                selected={dueDate}
-                onChange={(date) => setDueDate(date)}
-                minDate={new Date()}
-                className="w-full p-3 border-2 border-[#43435E] rounded-md text-center text-lg focus:outline-none focus:ring-2 focus:ring-[#43435E]"
-                placeholderText="Select a due date"
-              />
-            </div>
 
             {/* Buttons */}
             <div className="flex justify-between">
